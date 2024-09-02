@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">PasswordKeeper</string>
+    <string name="verify">Xác nhận</string>
+    <string name="incorrect_password">Mật khẩu không đúng.</string>
+    <string name="title">Tiêu đè</string>
+    <string name="username">Tên đăng nhập</string>
+    <string name="password">Mật khẩu</string>
+    <string name="save">Lưu</string>
+    <string name="delete">Xóa</string>
+</resources>
