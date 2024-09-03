@@ -1,32 +1,25 @@
 package com.standalone.passwordkeeper;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 
-import com.standalone.core.utils.EncUtil;
-import com.standalone.core.utils.InputValidator;
-import com.standalone.core.utils.ViewUtil;
 import com.standalone.passwordkeeper.databinding.ActivityMainBinding;
+import com.standalone.passwordkeeper.user.UserAdapter;
+import com.standalone.passwordkeeper.user.UserDao;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements FormDialog.OnDismissListener {
 
-    static final String PASSWORD = "N0Syst3m1nS@f3";
     ActivityMainBinding binding;
     String cipherText;
     SecretKey secretKey;
+    UserAdapter adapter;
+    UserDao dao;
 
 
     @Override
@@ -36,45 +29,39 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(binding.getRoot());
 
-        try {
-            secretKey = EncUtil.getAESKey(PASSWORD.toCharArray());
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
+        dao = new UserDao();
+
+        RecyclerView recyclerView = binding.recycler;
+        adapter = new UserAdapter(this);
+        recyclerView.setAdapter(adapter);
+
+        if (dao.getCount() > 1) {
+            binding.tvWarning.setVisibility(View.GONE);
+            adapter.setItemList(dao.getWithoutOwner());
         }
 
-
-        binding.btEncrypt.setOnClickListener(new View.OnClickListener() {
+        binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    InputValidator.getInstance().validate(binding.edInput).notEmpty();
-                    cipherText = EncUtil.encrypt(ViewUtil.getText(binding.edInput), secretKey);
-                    binding.tvPreview.setText(cipherText);
-                } catch (
-                        NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
-                        BadPaddingException | NoSuchAlgorithmException |
-                        InvalidAlgorithmParameterException e) {
-                    throw new RuntimeException(e);
-                } catch (InputValidator.ValidationError e) {
-                    // Ignore
-                }
+                new FormDialog().show(getSupportFragmentManager(), FormDialog.TAG);
             }
         });
 
-        binding.btDecrypt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (TextUtils.isEmpty(cipherText)) return;
+    }
 
-                try {
-                    String res = EncUtil.decrypt(cipherText, secretKey);
-                    binding.tvPreview.setText(res);
-                } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                         IllegalBlockSizeException | BadPaddingException |
-                         InvalidAlgorithmParameterException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getPreferences(MODE_PRIVATE).edit().clear().apply();
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialogInterface) {
+        adapter.setItemList(dao.getWithoutOwner());
+        if (adapter.getItemCount() > 0) {
+            binding.tvWarning.setVisibility(View.GONE);
+        } else {
+            binding.tvWarning.setVisibility(View.VISIBLE);
+        }
     }
 }

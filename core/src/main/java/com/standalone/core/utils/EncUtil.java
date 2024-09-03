@@ -4,11 +4,15 @@ import android.util.Base64;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
@@ -57,13 +61,13 @@ public class EncUtil {
         return new String(cipher.doFinal(encryptedBytes), StandardCharsets.UTF_8);
     }
 
-    public static SecretKey getAESKey() throws NoSuchAlgorithmException {
+    public static SecretKey genAESKey() throws NoSuchAlgorithmException {
         KeyGenerator keygen = KeyGenerator.getInstance("AES");
         keygen.init(256);
         return keygen.generateKey();
     }
 
-    public static SecretKey getAESKey(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static SecretKey genAESKey(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         byte[] salt = new byte[100];
         SecureRandom random = new SecureRandom();
@@ -73,6 +77,4 @@ public class EncUtil {
         KeySpec keySpec = new PBEKeySpec(password, salt, 65536, 256);
         return new SecretKeySpec(factory.generateSecret(keySpec).getEncoded(), "AES");
     }
-
-
 }

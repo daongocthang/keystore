@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PasswordKeeper</string>
+    <string name="app_name">KeyStore</string>
     <string name="verify">Xác nhận</string>
     <string name="incorrect_password">Mật khẩu không đúng.</string>
     <string name="title">Tiêu đè</string>
@@ -7,4 +7,7 @@
     <string name="password">Mật khẩu</string>
     <string name="save">Lưu</string>
     <string name="delete">Xóa</string>
+    <string name="todo">TODO</string>
+    <string name="no_data_found">Không tìm thấy dữ liệu</string>
+
 </resources>

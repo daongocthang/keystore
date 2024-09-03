@@ -2,15 +2,20 @@ package com.standalone.passwordkeeper;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.standalone.core.dao.Dao;
 import com.standalone.core.utils.EncUtil;
 import com.standalone.core.utils.InputValidator;
 import com.standalone.core.utils.ViewUtil;
 import com.standalone.passwordkeeper.databinding.ActivityRegisterBinding;
+import com.standalone.passwordkeeper.user.User;
+import com.standalone.passwordkeeper.user.UserDao;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 public class RegisterActivity extends AppCompatActivity {
     ActivityRegisterBinding binding;
@@ -22,7 +27,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         setContentView(binding.getRoot());
 
-        SecretDao dao = new SecretDao();
+        UserDao dao = new UserDao();
 
         binding.btNewPassword.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,11 +38,16 @@ public class RegisterActivity extends AppCompatActivity {
 
                     InputValidator.getInstance().validate(binding.edRePassword).confirmPassword(pw);
 
-                    Secret secret = new Secret();
-                    secret.setMaster(true);
-                    secret.setPassword(EncUtil.hash(pw));
+                    String hashedPw = EncUtil.hash(pw);
 
-                    dao.create(secret);
+
+                    User user = new User.Builder()
+                            .setUsername("owner")
+                            .setPassword(EncUtil.hash(pw))
+                            .setTitle(genKey(pw.length()))
+                            .build();
+
+                    dao.create(user);
 
                     startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                     finish();
@@ -48,5 +58,18 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-
+    String genKey(int size) {
+        try {
+            byte[] encoded = EncUtil.genAESKey().getEncoded();
+            byte[] salt = new byte[size];
+            byte[] encodedWithSalt = new byte[encoded.length + size];
+            SecureRandom random = new SecureRandom();
+            random.nextBytes(salt);
+            System.arraycopy(salt, 0, encodedWithSalt, 0, size);
+            System.arraycopy(encoded, 0, encodedWithSalt, size, encoded.length);
+            return Base64.encodeToString(encodedWithSalt, Base64.DEFAULT);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
