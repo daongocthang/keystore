@@ -23,10 +23,13 @@ import java.util.Properties;
 
 public class DatabaseManager extends SQLiteOpenHelper {
     static final String TAG = DatabaseManager.class.getSimpleName();
+    @SuppressLint("StaticFieldLeak")
     static DatabaseManager instance;
+    final Context context;
 
     DatabaseManager(Context context, String dbName, int version) {
         super(context, dbName, null, version);
+        this.context = context;
     }
 
     public static DatabaseManager getInstance() {
@@ -83,7 +86,14 @@ public class DatabaseManager extends SQLiteOpenHelper {
 
     public void backup() {
         try {
-            recovery("w");
+            File dir = getExtStorage(context);
+            getDb().close();
+            File src, dst;
+            if (dir.canWrite()) {
+                src = context.getDatabasePath(getDatabaseName());
+                dst = new File(dir, getDatabaseName());
+                transfer(src, dst);
+            }
         } catch (IOException e) {
             Log.e(TAG, "Write data failed");
         }
@@ -91,26 +101,16 @@ public class DatabaseManager extends SQLiteOpenHelper {
 
     public void restore() {
         try {
-            recovery("r");
+            File dir = getExtStorage(context);
+            getDb().close();
+            File src, dst;
+            if (dir.canRead()) {
+                src = new File(dir, getDatabaseName());
+                dst = context.getDatabasePath(getDatabaseName());
+                transfer(src, dst);
+            }
         } catch (IOException e) {
             Log.e(TAG, "Read data failed");
-        }
-    }
-
-    void recovery(String type) throws IOException {
-        final Context context = App.getContext();
-        File dir = getExtStorage(context);
-        getDb().close();
-        File src, dst;
-        if (type.equals("w") && dir.canWrite()) {
-            src = context.getDatabasePath(getDatabaseName());
-            dst = new File(dir, getDatabaseName());
-            transfer(src, dst);
-        }
-        if (type.equals("r") && dir.canRead()) {
-            src = new File(dir, getDatabaseName());
-            dst = context.getDatabasePath(getDatabaseName());
-            transfer(src, dst);
         }
     }
 
@@ -122,8 +122,11 @@ public class DatabaseManager extends SQLiteOpenHelper {
         return StorageUtil.getDefaultStorage(context);
     }
 
+
     void transfer(File src, File dst) throws IOException {
+        //noinspection resource
         FileChannel srcChannel = new FileInputStream(src).getChannel();
+        //noinspection resource
         FileChannel dstChannel = new FileOutputStream(dst).getChannel();
         dstChannel.transferFrom(srcChannel, 0, srcChannel.size());
         srcChannel.close();
