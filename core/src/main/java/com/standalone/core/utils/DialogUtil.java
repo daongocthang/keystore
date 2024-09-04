@@ -14,7 +14,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.standalone.core.R;
 
 public class DialogUtil {
-    public static void showAlertDialog(Context context, String msg) {
+    public static void showAlert(Context context, String msg) {
         new MaterialAlertDialogBuilder(context)
                 .setMessage(msg)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -26,7 +26,27 @@ public class DialogUtil {
                 .show();
     }
 
-    public static ProgressDialog showProgressDialog(Context context) {
+    public static void showConfirm(Context context, String msg, OnConfirmListener listener) {
+        final boolean[] resultOk = {false};
+        new MaterialAlertDialogBuilder(context)
+                .setMessage(msg)
+                .setPositiveButton(context.getString(R.string.apply), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        listener.onConfirm();
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    public static ProgressDialog showProgress(Context context) {
         ProgressDialog progressDialog = new ProgressDialog(context);
         progressDialog.show();
         return progressDialog;
@@ -46,5 +66,9 @@ public class DialogUtil {
             getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             setCancelable(false);
         }
+    }
+
+    public interface OnConfirmListener {
+        void onConfirm();
     }
 }

@@ -21,7 +21,7 @@ public class Dao<T> {
 
     Dao(Class<T> cls) {
         this.cls = cls;
-        this.db = DaoManager.getInstance().getDb();
+        this.db = DatabaseManager.getInstance().getDb();
         tableName = cls.getSimpleName().toLowerCase();
 
         createTableIfNotExist();
@@ -30,13 +30,16 @@ public class Dao<T> {
 
     public Dao() {
         this.cls = getClassType();
-        this.db = DaoManager.getInstance().getDb();
+        this.db = DatabaseManager.getInstance().getDb();
         tableName = cls.getSimpleName().toLowerCase();
 
         createTableIfNotExist();
 
     }
 
+    public void clear() {
+        db.execSQL("DELETE FROM " + tableName);
+    }
 
     public void create(T t) {
         db.insert(tableName, null, toValues(t));

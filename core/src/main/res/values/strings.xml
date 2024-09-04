@@ -3,7 +3,7 @@
     <!-- Common -->
     <string name="apply">Chấp nhận</string>
     <string name="cancel">Hủy bỏ</string>
-    <string name="delete_confirmation">Bạn thật muốn xóa dữ liệu không?</string>
+
 
     <!-- Authentication -->
     <string name="email">Email</string>

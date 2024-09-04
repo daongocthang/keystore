@@ -9,5 +9,12 @@
     <string name="delete">Xóa</string>
     <string name="todo">TODO</string>
     <string name="no_data_found">Không tìm thấy dữ liệu</string>
+    <string name="restore">Khôi phục</string>
+    <string name="backup">Sao lưu</string>
+    <string name="clear_data">xóa dữ liệu</string>
+    <string name="settings">Cài đặt</string>
+    <string name="confirm_delete">Bạn thật muốn xóa dữ liệu không?</string>
+    <string name="confirm_backup">Bạn thật muốn sao lưu dữ liệu không?</string>
+    <string name="confirm_restore">Bạn thật muốn khôi phục dữ liệu không?</string>
 
 </resources>

@@ -8,18 +8,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.standalone.core.utils.DialogUtil;
 import com.standalone.core.utils.EncUtil;
 import com.standalone.core.utils.InputValidator;
 import com.standalone.core.utils.ViewUtil;
@@ -30,9 +30,7 @@ import com.standalone.passwordkeeper.user.UserDao;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Objects;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -77,6 +75,7 @@ public class FormDialog extends BottomSheetDialogFragment {
         assert activity != null;
         SharedPreferences sharedPref = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
         keySize = sharedPref.getInt("size", 0);
+
         if (keySize == 0) {
             startActivity(new Intent(activity, LoginActivity.class));
             activity.finish();
@@ -123,24 +122,17 @@ public class FormDialog extends BottomSheetDialogFragment {
         binding.btDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new MaterialAlertDialogBuilder(view.getContext())
-                        .setMessage(getString(com.standalone.core.R.string.delete_confirmation))
-                        .setPositiveButton(getString(com.standalone.core.R.string.apply), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dao.delete(userId);
-                                dismiss();
-                            }
-                        })
-                        .setNegativeButton(getString(com.standalone.core.R.string.cancel), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dismiss();
-                            }
-                        }).show();
+                DialogUtil.showConfirm(view.getContext(), getString(R.string.confirm_delete), new DialogUtil.OnConfirmListener() {
+                    @Override
+                    public void onConfirm() {
+                        dao.delete(userId);
+                        dismiss();
+                    }
+                });
             }
         });
     }
+
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
@@ -157,11 +149,7 @@ public class FormDialog extends BottomSheetDialogFragment {
         String username = ViewUtil.getText(binding.edUsername);
         String encryptedPw = encrypt(ViewUtil.getText(binding.edPassword));
 
-        User user = new User.Builder()
-                .setTitle(title)
-                .setUsername(username)
-                .setPassword(encryptedPw)
-                .build();
+        User user = new User.Builder().setTitle(title).setUsername(username).setPassword(encryptedPw).build();
 
         if (canUpdate) {
             dao.update(userId, user);
